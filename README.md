@@ -1,97 +1,101 @@
-# ATAC-Seq and ArchR Analysis Pipeline
+# ATAC-Seq Chromatin Accessibility Analysis with ArchR
 
-## Introduction
+This repository contains an end-to-end pipeline to analyze chromatin accessibility profiles from single-nucleus ATAC-seq (snATAC-seq) datasets using **ArchR**. The pipeline includes dimensionality reduction, clustering, marker identification, and visualization across over 10 processed brain samples.
 
-This project leverages ATAC-Seq (Assay for Transposase-Accessible Chromatin using sequencing) and ArchR, an R-based framework, to analyze chromatin accessibility. By identifying open chromatin regions, the project provides insights into regulatory elements that influence gene expression. The goal is to understand chromatin accessibility dynamics across different conditions and integrate the results with transcriptomic data for a comprehensive view of gene regulation.
+---
 
-## Why is this Analysis Important?
+## Project Overview
+Chromatin accessibility is a powerful proxy for identifying active regulatory regions across the genome. This project processes over 100,000 single-nucleus profiles to characterize cell-type-specific accessibility in mouse brain samples, supporting downstream discovery of cell identity and state.
 
-1. Identifies Regulatory Elements: Open chromatin regions indicate active gene regulation sites.
+---
 
-2. Correlates Epigenetics with Gene Expression: Integrates ATAC-Seq with RNA-Seq to infer regulatory mechanisms.
+## Objectives
+- Load and manage snATAC-seq data using ArchR arrow files
+- Perform iterative LSI for dimensionality reduction
+- Cluster cells and generate UMAP embeddings
+- Identify major brain cell types based on gene activity scores
+- Assess data quality through fragment length periodicity and TSS enrichment
 
-3. Reveals Cell Type-Specific Differences: Enables identification of unique chromatin landscapes in different cell populations.
+---
 
-4. Supports Disease Research: Helps in identifying epigenetic changes associated with diseases such as cancer and neurodegeneration.
+## Dataset Description
+The input comprises **12 Arrow files** generated from 10X Genomics Multiome mouse brain samples.
 
-## Methodology
+| Sample Count | Source | Genome |
+|--------------|--------|--------|
+| 12           | 10X Genomics Multiome | mm10 (mouse) |
 
-**1. Initialize ArchR Environment**
+ArchR auto-generates:
+- TileMatrix
+- GeneScoreMatrix
 
-i. Load the ArchR package and set the reference genome (mm10 for mouse or hg38 for human).
+Total Cells: ~100,000
 
-ii. Define the project directory for storing analysis results.
+---
 
-**2. Load or Create an ArchR Project**
+## Pipeline Summary
 
-i. If an existing ArchR project is found, load it.
+### 1. Load and Prepare Project
+- Load or initialize `ArchRProject` with Arrow files
+- Assign genome reference (`mm10`)
 
-ii. Otherwise, process ATAC-Seq arrow files to create a new ArchRProject.
+### 2. Dimensionality Reduction
+- Run `addIterativeLSI()` using TileMatrix
+- Generate reduced dimensions (LSI1 to LSI30)
 
-**3. Quality Control and Data Filtering**
+### 3. Clustering & Visualization
+- Graph-based clustering with `addClusters()`
+- UMAP visualization with `addUMAP()`
+- Generate cluster-wise and gene-wise embeddings
 
-i. Filter low-quality cells based on:
+### 4. Cell Type Annotation
+- Impute gene scores with MAGIC
+- Identify major cell types using marker genes:
+  - Neurons: *Rbfox3, Slc17a7, Gad1*
+  - Oligodendrocytes: *Mog, Mbp*
+  - Astrocytes, Microglia, OPCs, Endothelial cells, etc.
+- Validate annotations with browser track visualizations
 
-ii. TSS enrichment scores (measures nucleosome-free regions at transcription start sites)
+### 5. Quality Control
+- **Fragment Length Periodicity**: Validates nucleosomal structure
+- **TSS Enrichment**: Reflects accessibility around transcription start sites
 
-iii. Fragment counts per cell (detects sequencing artifacts)
+## Key Results
+- **Clusters Identified**: 13 major clusters
+- **Cell Types Resolved**: Excitatory and inhibitory neurons, oligodendrocytes, astrocytes, microglia, OPCs
+- **TSS Enrichment**: Confirms high-quality snATAC-seq data across most samples
+- **Fragment Periodicity**: Visible mono-, di-, and tri-nucleosome peaks
 
-iv. Remove doublets using ArchR’s built-in methods.
+## Scalability
+This ArchR-based pipeline is adaptable for larger or heterogeneous datasets:
+- Compatible with custom reference genomes
+- Modular steps for integration with multi-omics (RNA+ATAC)
+- Processes ~100k cells in under 10 minutes on HPC nodes
+- Easily re-used for human, cancer, or drug-response datasets with minimal changes
 
-**4. Dimensionality Reduction and Clustering**
+## Tech Stack
+- **R (ArchR)**
+- Data visualization with `ggplot2`, `grid`, and ArchR's built-ins
+- Genome annotation via `mm10`
 
-i. Perform Latent Semantic Indexing (LSI) for dimensionality reduction.
+## Visualizations
+### 1. Cluster Identification via Iterative LSI  
+This UMAP plot shows the result of dimensionality reduction using Iterative Latent Semantic Indexing (LSI), followed by clustering of cells based on chromatin accessibility profiles. Each cluster is color-coded and reveals distinct subpopulations across mouse brain samples, providing insights into underlying cell-type diversity.  
+<img width="270" alt="Screenshot 2025-04-20 at 9 33 28 PM" src="https://github.com/user-attachments/assets/449daac4-bfe5-4a86-9af6-ccb8844dfd70" />
 
-ii. Use UMAP/t-SNE for visualization.
+### 2. Marker Gene Accessibility Map  
+UMAP projection of the same cells, colored by gene accessibility scores for **RBFOX3**, a neuron-specific marker. The gradient illustrates differential accessibility across clusters, helping to annotate cell identities and confirm known lineage-specific expression patterns.  
+<img width="319" alt="Screenshot 2025-04-20 at 9 33 51 PM" src="https://github.com/user-attachments/assets/24ff20b1-6657-4065-ae01-805c2ed73761" />
 
-iii. Cluster cells and annotate based on marker genes.
+### 3. Chromatin Accessibility Across Loci  
+Track plot showing normalized ATAC-seq signal across the **Gad1/Gad1os** locus, separated by cluster. This figure captures region-specific regulatory activity and highlights which cell types show enriched chromatin accessibility at functionally relevant genomic regions.  
+<img width="393" alt="Screenshot 2025-04-20 at 9 35 37 PM" src="https://github.com/user-attachments/assets/eaa7e450-1a25-44bd-b03e-f77e8a1f4f4a" />
 
-**5. Marker Gene Analysis**
 
-i. Identify differentially accessible regions (DARs).
+## Applications
+- Cell-type deconvolution in complex tissues
+- Comparative epigenomics across conditions
+- Foundation for multi-omics integration with scRNA-seq
 
-ii. Associate chromatin accessibility peaks with genes.
-
-iii. Generate heatmaps and violin plots for gene accessibility visualization.
-
-**6. Motif Enrichment and Peak Callin**g
-
-i. Perform peak calling to identify accessible chromatin regions.
-
-ii. Run motif enrichment analysis to find transcription factor binding sites.
-
-iii. Generate motif heatmaps for visualization.
-
-**7. Gene Activity Scores and Integration**
-
-i. Compute Gene Score Matrices to infer gene activity from ATAC-Seq data.
-
-ii. Integrate ATAC-Seq with RNA-Seq for correlation analysis.
-
-**8. Trajectory and Pseudotime Analysis**
-
-i. Construct cellular trajectories to infer differentiation pathways.
-
-ii. Identify pseudotime progression states.
-
-## Results and Key Insights
-
-1. Identified key differentially accessible chromatin regions.
-
-2. Found transcription factors enriched in open chromatin sites.
-
-3. Integrated RNA-Seq data to correlate chromatin accessibility with gene expression.
-
-4. Constructed cellular trajectories showing differentiation states.
-
-## Prerequisites
-
-1. R version 4.0+
-
-2. ArchR package (install.packages('ArchR'))
-
-3. Required dependencies: BiocManager, data.table, ggplot2, ComplexHeatmap
-
-## Conclusion
-
-This ATAC-Seq analysis pipeline, powered by ArchR, provides a robust framework for studying chromatin accessibility. By integrating chromatin and transcriptomic data, it enhances our understanding of gene regulation and cellular identity, ultimately contributing to disease research and precision medicine.
+## License
+This project is distributed under the MIT License.
