@@ -2,12 +2,8 @@
 
 This repository contains an end-to-end pipeline to analyze chromatin accessibility profiles from single-nucleus ATAC-seq (snATAC-seq) datasets using **ArchR**. The pipeline includes dimensionality reduction, clustering, marker identification, and visualization across over 10 processed brain samples.
 
----
-
 ## Project Overview
 Chromatin accessibility is a powerful proxy for identifying active regulatory regions across the genome. This project processes over 100,000 single-nucleus profiles to characterize cell-type-specific accessibility in mouse brain samples, supporting downstream discovery of cell identity and state.
-
----
 
 ## Objectives
 - Load and manage snATAC-seq data using ArchR arrow files
@@ -15,8 +11,6 @@ Chromatin accessibility is a powerful proxy for identifying active regulatory re
 - Cluster cells and generate UMAP embeddings
 - Identify major brain cell types based on gene activity scores
 - Assess data quality through fragment length periodicity and TSS enrichment
-
----
 
 ## Dataset Description
 The input comprises **12 Arrow files** generated from 10X Genomics Multiome mouse brain samples.
@@ -30,8 +24,6 @@ ArchR auto-generates:
 - GeneScoreMatrix
 
 Total Cells: ~100,000
-
----
 
 ## Pipeline Summary
 
